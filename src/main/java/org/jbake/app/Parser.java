@@ -221,6 +221,22 @@ public class Parser {
 	 * @param contents	Contents of file 
 	 */
 	private void processHeader(List<String> contents) {
+		
+		String HEADER_DEFAULT = "header.default.";
+		
+		Iterator<String> configKeys = config.getKeys();
+		
+		while (configKeys.hasNext()) {
+			
+			String key = configKeys.next();
+			
+			if (key.startsWith(HEADER_DEFAULT)) {
+				
+				String headerKey = key.substring(HEADER_DEFAULT.length());
+				content.put(headerKey, config.getProperty(key));
+			}
+		}
+
 		for (String line : contents) {
 			if (line.equals("~~~~~~")) {
 				break;
