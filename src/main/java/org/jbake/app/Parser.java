@@ -6,6 +6,8 @@ import static org.asciidoctor.AttributesBuilder.attributes;
 import static org.asciidoctor.OptionsBuilder.options;
 import static org.asciidoctor.SafeMode.UNSAFE;
 
+import org.jbake.plugins.ContentPlugin;
+import org.jbake.plugins.InterlinksContentPlugin;
 import org.pegdown.Extensions;
 
 import org.pegdown.PegDownProcessor;
@@ -346,17 +348,24 @@ public class Parser {
 			}
 		}
 		
+		String contentString = body.toString();
+		
+		{
+			ContentPlugin interlinks = new InterlinksContentPlugin();
+			contentString = interlinks.parse(contentString, config);
+		}
+		
 		if (file.getPath().endsWith(".md")) {
 		    if (pegdownProcessor == null) {
 		        pegdownProcessor = new PegDownProcessor();
 		    }
 
-		    String markdown = pegdownProcessor.markdownToHtml(body.toString());
+		    String markdown = pegdownProcessor.markdownToHtml(contentString);
 		    content.put("body", markdown);
 		} else if (file.getPath().endsWith(".ad") || file.getPath().endsWith(".asciidoc") || file.getPath().endsWith(".adoc")) {
-			processAsciiDoc(body);
+			processAsciiDoc(contentString);
 		} else {
-			content.put("body", body.toString());
+			content.put("body", contentString);
 		}
 	}
 	
@@ -372,12 +381,12 @@ public class Parser {
 			body.append(line + "\n");
 		}
 		
-		processAsciiDoc(body);
+		processAsciiDoc(body.toString());
 	}
 	
-	private void processAsciiDoc(StringBuffer contents) {
+	private void processAsciiDoc(String contents) {
 		Options options = getAsciiDocOptionsAndAttributes();
-		content.put("body", asciidoctor.render(contents.toString(), options));
+		content.put("body", asciidoctor.render(contents, options));
 	}
 
    private Options getAsciiDocOptionsAndAttributes() {
@@ -403,6 +412,6 @@ public class Parser {
          return toBooleanObject(value);
       if(isNumber(value))
          return toInt(value);
-      return value;
-   }
+		return value;
+	}
 }
